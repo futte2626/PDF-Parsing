@@ -1,0 +1,15 @@
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Fallacy-Extractor.exe
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Fallacy-Extractor.deps.json
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Fallacy-Extractor.runtimeconfig.json
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Fallacy-Extractor.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Fallacy-Extractor.pdb
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.AssemblyInfoInputs.cache
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.AssemblyInfo.cs
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.csproj.CoreCompileInputs.cache
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.sourcelink.json
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\refint\Fallacy-Extractor.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.pdb
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.genruntimeconfig.cache
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\ref\Fallacy-Extractor.dll
