@@ -22,3 +22,4 @@ C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\D
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win\lib\net9.0\System.Text.Encodings.Web.dll
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.csproj.AssemblyReference.cache
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-.10722377.Up2Date
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\SharpYaml.dll
