@@ -8,4 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="OllamaSharp" Version="5.4.12" />
+    <PackageReference Include="SharpYaml" Version="2.1.4" />
+  </ItemGroup>
+
 </Project>

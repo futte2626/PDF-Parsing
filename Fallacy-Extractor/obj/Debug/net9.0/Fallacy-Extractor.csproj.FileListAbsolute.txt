@@ -13,3 +13,12 @@ C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\D
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.pdb
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.genruntimeconfig.cache
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\ref\Fallacy-Extractor.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Microsoft.Extensions.AI.Abstractions.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\OllamaSharp.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\System.IO.Pipelines.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\System.Text.Encodings.Web.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\System.Text.Json.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win\lib\net9.0\System.Text.Encodings.Web.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.csproj.AssemblyReference.cache
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-.10722377.Up2Date

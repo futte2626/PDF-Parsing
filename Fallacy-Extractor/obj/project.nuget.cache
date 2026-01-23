@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "1oRKtd9ls6k=",
+  "dgSpecHash": "CetIEA21hV4=",
   "success": true,
   "projectFilePath": "C:\\Users\\Diogenes of Sinope\\Documents\\GitHub\\PDF-Parsing\\Fallacy-Extractor\\Fallacy-Extractor.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.0.0\\microsoft.extensions.ai.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\ollamasharp\\5.4.12\\ollamasharp.5.4.12.nupkg.sha512",
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\sharpyaml\\2.1.4\\sharpyaml.2.1.4.nupkg.sha512",
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\system.io.pipelines\\10.0.0\\system.io.pipelines.10.0.0.nupkg.sha512",
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\system.text.encodings.web\\10.0.0\\system.text.encodings.web.10.0.0.nupkg.sha512",
+    "C:\\Users\\Diogenes of Sinope\\.nuget\\packages\\system.text.json\\10.0.0\\system.text.json.10.0.0.nupkg.sha512"
+  ],
   "logs": []
 }
