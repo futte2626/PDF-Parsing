@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System;
 using System.Reflection.Metadata.Ecma335;
 namespace Fallacy_Extractor;
-public static class YAMLer {
- 
+public static class YAMLer
+{
+
     public static List<string> Validate(Root root)
     {
         var errors = new List<string>();
@@ -16,7 +17,7 @@ public static class YAMLer {
             errors.Add("Root.Document cannot be null");
         else
         {
-            
+
             if (string.IsNullOrWhiteSpace(root.Document.ID))
                 errors.Add("Document.ID is required");
             if (string.IsNullOrWhiteSpace(root.Document.Source))
@@ -41,6 +42,9 @@ public static class YAMLer {
         {
             ValidateFallacy(fallacy, root.Nodes, errors);
         }
+        
+        //IsDAG(root.Nodes, root.Edges, errors);
+
 
         // if (root.Stats.NodeCount != root.Nodes.Count)
         //     errors.Add($"Stats.NodeCount ({root.Stats.NodeCount}) does not match actual number of nodes ({root.Nodes.Count})");
@@ -109,10 +113,6 @@ public static class YAMLer {
             errors.Add($"Fallacy {fallacy.ID}: TextSpans cannot be null");
     }
 }
-
-
-
-    
 
 
 public class Root {
