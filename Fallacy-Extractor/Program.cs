@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using SharpYaml;
 using SharpYaml.Serialization;
@@ -11,121 +12,128 @@ namespace Fallacy_Extractor
         {
             NLangParser n = new NLangParser();
             //Root yaml = await n.parseToYAML("what is love? if love exists, then point at it. love isn't physical, cuz the physical world is devoid of it.");
-            string stringy = """
-            ```yaml
-            Version: "1.0"
-            Document:
-            ID: "doc-uuid"
-            Source: "input_text"
-            Language: "da"
-            PageCount: 1
-            Nodes:
-            - ID: "p1"
-                Role: "Premise"
-                Explicit: true
-                Text: >
-                what is love?
-                Confidence: 0.95
-                TextSpan:
-                Page: 1
-                Start: 0
-                End: 13
-                InferredFrom: []
-            - ID: "p2"
-                Role: "Premise"
-                Explicit: true
-                Text: >
-                if love exists, then point at it.
-                Confidence: 0.98
-                TextSpan:
-                Page: 1
-                Start: 14
-                End: 36
-                InferredFrom: []
-            - ID: "p3"
-                Role: "Premise"
-                Explicit: true
-                Text: >
-                love isn't physical, cuz the physical world is devoid of it.
-                Confidence: 0.92
-                TextSpan:
-                Page: 1
-                Start: 37
-                End: 75
-                InferredFrom: []
-            - ID: "ip1"
-                Role: "Premise"
-                Explicit: false
-                Text: >
-                The existence of love is questioned.
-                Confidence: 0.75
-                TextSpan: null
-                InferredFrom: ["p1", "p2"]
-            - ID: "ip2"
-                Role: "Premise"
-                Explicit: false
-                Text: >
-                The physical world is defined as lacking love.
-                Confidence: 0.80
-                TextSpan: null
-                InferredFrom: ["p3"]
-            - ID: "c1"
-                Role: "Conclusion"
-                Explicit: true
-                Text: >
-                Therefore, love is not a physical phenomenon.
-                Confidence: 0.85
-                TextSpan:
-                Page: 1
-                Start: 76
-                End: 116
-                InferredFrom: ["p3"]
-            - ID: "ip3"
-                Role: "Premise"
-                Explicit: false
-                Text: >
-                The inability to point at love implies it's not physical.
-                Confidence: 0.68
-                TextSpan: null
-                InferredFrom: ["p2"]
-            Edges:
-            - ID: "e1"
-                From: "p1"
-                To: "ip1"
-                Relation: "Supports"
-                Confidence: 0.78
-            - ID: "e2"
-                From: "p2"
-                To: "ip3"
-                Relation: "Supports"
-                Confidence: 0.83
-            - ID: "e3"
-                From: "p3"
-                To: "c1"
-                Relation: "Supports"
-                Confidence: 0.90
-            - ID: "e4"
-                From: "ip1"
-                To: "c1"
-                Relation: "Supports"
-                Confidence: 0.65
-            - ID: "e5"
-                From: "ip3"
-                To: "c1"
-                Relation: "Supports"
-                Confidence: 0.72
-            Fallacies: []
-            Meta:
-            Warnings: []
-            Stats:
-                NodeCount: 6
-                EdgeCount: 5
-                ImplicitPremisesAmount: 3
-            ```
-            """;
+            var stringy =
+    "Version: \"1.0\"\n" +
+    "Document:\n" +
+    "  ID: \"doc-uuid\"\n" +
+    "  Source: \"input_text\"\n" +
+    "  Language: \"da\"\n" +
+    "  PageCount: 1\n" +
+    "\n" +
+    "Nodes:\n" +
+    "  - ID: \"p1\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: true\n" +
+    "    Text: >\n" +
+    "      what is love?\n" +
+    "    Confidence: 0.95\n" +
+    "    TextSpan:\n" +
+    "      Page: 1\n" +
+    "      Start: 0\n" +
+    "      End: 13\n" +
+    "    InferredFrom: []\n" +
+    "\n" +
+    "  - ID: \"p2\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: true\n" +
+    "    Text: >\n" +
+    "      if love exists, then point at it.\n" +
+    "    Confidence: 0.98\n" +
+    "    TextSpan:\n" +
+    "      Page: 1\n" +
+    "      Start: 14\n" +
+    "      End: 37\n" +
+    "    InferredFrom: []\n" +
+    "\n" +
+    "  - ID: \"p3\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: true\n" +
+    "    Text: >\n" +
+    "      love isn't physical, cuz the physical world is devoid of it.\n" +
+    "    Confidence: 0.92\n" +
+    "    TextSpan:\n" +
+    "      Page: 1\n" +
+    "      Start: 38\n" +
+    "      End: 78\n" +
+    "    InferredFrom: []\n" +
+    "\n" +
+    "  - ID: \"ip1\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: false\n" +
+    "    Text: >\n" +
+    "      The existence of love is questioned.\n" +
+    "    Confidence: 0.75\n" +
+    "    TextSpan: null\n" +
+    "    InferredFrom: [\"p1\", \"p2\"]\n" +
+    "\n" +
+    "  - ID: \"ip2\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: false\n" +
+    "    Text: >\n" +
+    "      The physical world is considered separate from love.\n" +
+    "    Confidence: 0.80\n" +
+    "    TextSpan: null\n" +
+    "    InferredFrom: [\"p3\"]\n" +
+    "\n" +
+    "  - ID: \"c1\"\n" +
+    "    Role: \"Conclusion\"\n" +
+    "    Explicit: true\n" +
+    "    Text: >\n" +
+    "      love isn't physical.\n" +
+    "    Confidence: 0.90\n" +
+    "    TextSpan:\n" +
+    "      Page: 1\n" +
+    "      Start: 38\n" +
+    "      End: 78\n" +
+    "    InferredFrom: [\"p3\"]\n" +
+    "\n" +
+    "  - ID: \"ip3\"\n" +
+    "    Role: \"Premise\"\n" +
+    "    Explicit: false\n" +
+    "    Text: >\n" +
+    "      The inability to point at love suggests it is not physical.\n" +
+    "    Confidence: 0.68\n" +
+    "    TextSpan: null\n" +
+    "    InferredFrom: [\"p2\"]\n" +
+    "\n" +
+    "Edges:\n" +
+    "  - ID: \"e1\"\n" +
+    "    From: \"p1\"\n" +
+    "    To: \"ip1\"\n" +
+    "    Relation: \"Supports\"\n" +
+    "    Confidence: 0.85\n" +
+    "\n" +
+    "  - ID: \"e2\"\n" +
+    "    From: \"p2\"\n" +
+    "    To: \"ip3\"\n" +
+    "    Relation: \"Supports\"\n" +
+    "    Confidence: 0.78\n" +
+    "\n" +
+    "  - ID: \"e3\"\n" +
+    "    From: \"p3\"\n" +
+    "    To: \"c1\"\n" +
+    "    Relation: \"Supports\"\n" +
+    "    Confidence: 0.93\n" +
+    "\n" +
+    "  - ID: \"e4\"\n" +
+    "    From: \"ip3\"\n" +
+    "    To: \"c1\"\n" +
+    "    Relation: \"Supports\"\n" +
+    "    Confidence: 0.72\n" +
+    "\n" +
+    "Fallacies: []\n" +
+    "\n" +
+    "Meta:\n" +
+    "  Warnings: []\n" +
+    "  Stats:\n" +
+    "    NodeCount: 7\n" +
+    "    EdgeCount: 4\n" +
+    "    ImplicitPremisesAmount: 3\n";
+
             if((int)stringy[0] == 96){ //checks for ` which has the ascii value 96
                 stringy = NLangParser.DeCodeBlock(stringy); 
             }
+            Console.Write(stringy);
             var serializer = new Serializer();
             Root? yaml = null;
             try
@@ -144,9 +152,9 @@ namespace Fallacy_Extractor
             foreach(string s in YAMLer.Validate(yaml)){
                 Console.WriteLine(s);
             }
-            // foreach(Fallacy f in await n.FallacyDetect(yaml)){
-            //     Console.WriteLine(f.Description + f.ID + f.TargetNodes);
-            // }
+            foreach(Fallacy f in await n.FallacyDetect(yaml)){
+                Console.WriteLine(f.Description + f.ID + f.TargetNodes);
+            }
             
             
         }

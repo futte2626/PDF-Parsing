@@ -105,7 +105,7 @@ namespace Fallacy_Extractor
             chatClient = new OllamaApiClient(new Uri("http://localhost:11434/"), "gemma3:12b");
             chatHistory = [];
         }
-        public async Task<Root> parseToYAML(string input){
+        public async Task<Root> ParseToYAML(string input){
             // my prompt
             string prompt = "master prompt: tag denne tekst i \"\" og dets pointer og påstande om til dette yaml format vist under teksten, selvom de er lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. Et implicit præmisse er et præmisse hvor explicit er false. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. hvis der står et tal, så giv dem et tal. du skal ikke gentage skemaet perfekt men tilpas det til inputtet følgende dette:\n";
 
@@ -173,7 +173,8 @@ namespace Fallacy_Extractor
             var errs = YAMLer.Validate(root);
 
             string prompt = "you need to validate the following yaml for fallacies and logical errors in this exact format:";
-            prompt += "fallacies: [{id: \"f1\", type: \"ad_hominem\", target_nodes: [\"p7\"], description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\", confidence: 0.92, text_spans: [{page: 3, start: 201, end: 234}]}]";
+            prompt += "- [{ID: \"f1\", type: \"ad_hominem\", target_nodes: [\"p7\"], description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\", confidence: 0.92, text_spans: [{page: 3, start: 201, end: 234}]}]";
+            prompt += "write as many fallacies as there are from the graph. DO NOT START THE FALLACIES WITH Fallacies: start with the simple -";
             prompt += "here's the validation errors for the input you should analyze:";
             if (errs.Count > 0)
             {
@@ -182,14 +183,17 @@ namespace Fallacy_Extractor
                     prompt += "- " + e + "\n";
                 prompt += "\n";
             }
-            
-            prompt += "du skal analyse denne yaml fil og finde fejlslutninger og dårlige argumenter, du må KUN bruge yamlfilen og hvis du bruger andet tager jeg dine donkey kong bananer, du skal lave det om til yaml fil og hvis det ikke minder om ekspemplet får du ikke mad. the following is the input you have to analyze:";
 
+            prompt += "you do NOT follow the schema that the input YAML file is in. you're writing distinct YAML following the schema above.";
             var serializer = new SharpYaml.Serialization.Serializer();
             string rootYaml = serializer.Serialize(root);
             prompt += rootYaml;
 
+
             string str = await this.Prompt(prompt);
+            if((int)str[0] == 96){ //checks for ` which has the ascii value 96
+                str = NLangParser.DeCodeBlock(str); 
+            }
 
             List<Fallacy> fallacies = new List<Fallacy>();
             try
@@ -200,7 +204,7 @@ namespace Fallacy_Extractor
             {
                 Console.WriteLine("Failed to parse AI output as Fallacy list: " + ex.Message);
             }
-
+            chatHistory.Clear();
             return fallacies;
         }
 
