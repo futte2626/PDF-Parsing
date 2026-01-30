@@ -90,6 +90,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using OllamaSharp;
+using OllamaSharp.Models;
 using SharpYaml.Serialization;
 
 namespace Fallacy_Extractor
@@ -100,20 +101,23 @@ namespace Fallacy_Extractor
         private readonly List<ChatMessage> chatHistory;
 
         public NLangParser()
-        {
+{
             chatClient = new OllamaApiClient(new Uri("http://localhost:11434/"), "gemma3:12b");
             chatHistory = [];
         }
         public async Task<Root> parseToYAML(string input){
+            // my prompt
+            string prompt = "master prompt: tag denne tekst i \"\" og dets pointer og påstande om til dette yaml format vist under teksten, selvom de er lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. Et implicit præmisse er et præmisse hvor explicit er false. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. hvis der står et tal, så giv dem et tal. du skal ikke gentage skemaet perfekt men tilpas det til inputtet følgende dette:\n";
 
-            //string prompt = "ud fra dette stykke yaml, find nogle fejlslutninger (fallacies) gemt i teksten, hvis der er nogen. skriv dem i yaml, eller jeg tager dine chaos orbs. skriv intet andet end det YAML felt. de skal følge dette format (der kan være flere end 1 fejlslutning) fallacies: # should be empty, as it'll get appended by fallacy-detector - id: \"f1\" type: \"ad_hominem\" target_nodes: [\"p7\"] description: > The argument attacks the intelligence of the believers rather than addressing the claim. confidence: 0.92 #float between 0 and 1 text_spans: - page: 3 start: 201 end: 234 her starter YAML inputtet";
-            string prompt = "tag denne tekst i \"\" og dets pointer og påstande om til dette yaml format vist under teksten, selvom de er lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. hvis der står et tal, så giv dem et tal. du skal ikke gentage skemaet perfekt men tilpas det til inputtet følgende dette:";
+            //string prompt = "tag denne tekst i \"\" og dets pointer og påstande, og omdan dem til yaml format vist under teksten, de må gerne være lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. Hvis der står et tal, så giv dem et tal. stats skal ALTID være en under kategori af meta. og vis det er explicit er sandt skal inferred from være tom. du skal ikke gentage skemaet perfekt men tilpas det til inputtet følgende dette:";
+
             prompt += input;
-            prompt += "  Version: \"1.0\" Document: ID: \"doc-uuid\" Source: \"input.pdf\" Language: \"en\" PageCount: 10 Nodes: - ID: \"p1\" Role: \"Premise\" Explicit: true Text: > this is text that is a string Confidence: 0.91 TextSpan: Page: 1 Start: 134 End: 247 InferredFrom: [] - ID: \"ip1\" Role: \"Premise\" Explicit: false Text: > this is something implied from some text Confidence: 0.63 TextSpan: null InferredFrom: [\"p4\", \"p6\"] - ID: \"c1\" Role: \"Conclusion\" Explicit: true Text: > therefore this text must be true Confidence: 0.88 TextSpan: Page: 2 Start: 412 End: 476 InferredFrom: [] Edges: - ID: \"e1\" From: \"p4\" To: \"c1\" Relation: \"Supports\" Confidence: 0.82 - ID: \"e2\" From: \"ip1\" To: \"c1\" Relation: \"Supports\" Confidence: 0.71 - ID: \"e3\" From: \"c1\" To: \"c3\" Relation: \"Supports\" Confidence: 0.76 Fallacies: - ID: \"f1\" Type: \"ad_hominem\" TargetNodes: [\"p7\"] Description: > The argument attacks the intelligence of the believers rather than addressing the claim. Confidence: 0.92 TextSpans: - Page: 3 Start: 201 End: 234 Meta: Warnings: - \"Possible circular support detected between c1 and c3\" Stats: NodeCount: 3 EdgeCount: 3 ImplicitPremisesAmount: 2";
+            prompt += "example yaml for different example:  Version: \"1.0\" Document: ID: \"doc-uuid\" Source: \"input.pdf\" Language: \"en\" PageCount: 10 Nodes: - ID: \"p1\" Role: \"Premise\" Explicit: true Text: > this is text that is a string Confidence: 0.91 TextSpan: Page: 1 Start: 134 End: 247 InferredFrom: [] - ID: \"ip1\" Role: \"Premise\" Explicit: false Text: > this is something implied from some text Confidence: 0.63 TextSpan: null InferredFrom: [\"p4\", \"p6\"] - ID: \"c1\" Role: \"Conclusion\" Explicit: true Text: > therefore this text must be true Confidence: 0.88 TextSpan: Page: 2 Start: 412 End: 476 InferredFrom: [] Edges: - ID: \"e1\" From: \"p4\" To: \"c1\" Relation: \"Supports\" Confidence: 0.82 - ID: \"e2\" From: \"ip1\" To: \"c1\" Relation: \"Supports\" Confidence: 0.71 - ID: \"e3\" From: \"c1\" To: \"c3\" Relation: \"Supports\" Confidence: 0.76 Fallacies: - ID: \"f1\" Type: \"ad_hominem\" TargetNodes: [\"p7\"] Description: > The argument attacks the intelligence of the believers rather than addressing the claim. Confidence: 0.92 TextSpans: - Page: 3 Start: 201 End: 234  Meta: Warnings: - \"Possible circular support detected between c1 and c3\"   Stats: NodeCount: 3 EdgeCount: 3 ImplicitPremisesAmount: 2";
+            prompt += "Invariants and rules: Meta contains both Warnings and stats. the only valid relaitions are: Supports | Attacks | Implies. NEVER TRANSLATE. the original text should remain prestine. If you don't have data, never guess, just leave the field null. the only valid Roles are: Premis | Conclusion. ImplicitPremisses are when explicit is set to false";
             string msg = await this.Prompt(prompt);
 
             if((int)msg[0] == 96){ //checks for ` which has the ascii value 96
-                msg = DeCodeBlock(msg);
+                msg = DeCodeBlock(msg); 
             }
             //Console.WriteLine((int)msg[0]);
 
@@ -140,13 +144,18 @@ namespace Fallacy_Extractor
             chatHistory.Add(new ChatMessage(ChatRole.User, input));
 
             var response = "";
-            await foreach (ChatResponseUpdate item in chatClient.GetStreamingResponseAsync(chatHistory))
+            var options = new ChatOptions()
+            {
+                Temperature = 0.3f
+            };
+            await foreach (ChatResponseUpdate item in chatClient.GetStreamingResponseAsync(chatHistory, options))
             {
                 Console.Write(item.Text); // display as it streams
                 response += item.Text;
             }
 
             chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+            chatHistory.Clear();
             Console.WriteLine();
             return response;
         }
@@ -160,6 +169,42 @@ namespace Fallacy_Extractor
             int start = 7;// ```yaml
             return s.Substring(start, s.Length - start - 3);
         }
+        public async Task<List<Fallacy>> FallacyDetect(Root root){
+            var errs = YAMLer.Validate(root);
+
+            string prompt = "you need to validate the following yaml for fallacies and logical errors in this exact format:";
+            prompt += "fallacies: [{id: \"f1\", type: \"ad_hominem\", target_nodes: [\"p7\"], description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\", confidence: 0.92, text_spans: [{page: 3, start: 201, end: 234}]}]";
+            prompt += "here's the validation errors for the input you should analyze:";
+            if (errs.Count > 0)
+            {
+                prompt += "Validation errors:\n";
+                foreach (var e in errs)
+                    prompt += "- " + e + "\n";
+                prompt += "\n";
+            }
+            
+            prompt += "du skal analyse denne yaml fil og finde fejlslutninger og dårlige argumenter, du må KUN bruge yamlfilen og hvis du bruger andet tager jeg dine donkey kong bananer, du skal lave det om til yaml fil og hvis det ikke minder om ekspemplet får du ikke mad. the following is the input you have to analyze:";
+
+            var serializer = new SharpYaml.Serialization.Serializer();
+            string rootYaml = serializer.Serialize(root);
+            prompt += rootYaml;
+
+            string str = await this.Prompt(prompt);
+
+            List<Fallacy> fallacies = new List<Fallacy>();
+            try
+            {
+                fallacies = serializer.Deserialize<List<Fallacy>>(str);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to parse AI output as Fallacy list: " + ex.Message);
+            }
+
+            return fallacies;
+        }
+
+
 
     }
     

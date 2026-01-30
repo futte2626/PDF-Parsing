@@ -6,5 +6,9 @@ using System;
 namespace Fallacy_Extractor;
 
 public class Fallacy_Detector {
+    Fallacy_Detector(NLangParser nlp){
 
+    }
+    
+    
 }

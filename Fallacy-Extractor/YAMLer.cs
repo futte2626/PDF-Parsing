@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading.Tasks.Dataflow;
 namespace Fallacy_Extractor;
 public static class YAMLer
 {
@@ -8,11 +9,11 @@ public static class YAMLer
     public static List<string> Validate(Root root)
     {
         var errors = new List<string>();
-        string[] validVersions = ["1.0"];
+        string[] validVersions = ["1.0", "test, the llm would never write this"];
 
         if (string.IsNullOrWhiteSpace(root.Version) || validVersions.Contains(root.Version))
             errors.Add("Root.Version must be '1.0'");
-
+        Console.WriteLine(root.Version);
         if (root.Document == null)
             errors.Add("Root.Document cannot be null");
         else
@@ -68,7 +69,7 @@ public static class YAMLer
         if (!node.Explicit && (node.InferredFrom == null || node.InferredFrom.Count == 0))
             errors.Add($"Node {node.ID}: implicit nodes must have inferred_from");
 
-        if (node.Explicit)
+        if (node.Explicit && node.Role != Role.Conclusion)
         {
             if (node.TextSpan == null)
                 errors.Add($"Node {node.ID}: explicit nodes must have a TextSpan");
@@ -135,21 +136,22 @@ public class Node {
 
     public List<string> InferredFrom { get; set; } = new();
 }
-public enum Role {
+public enum Role { 
     Premise,
     ImplicitPremise,
     Conclusion,
 }
 public class Edge {
-    public string ID { get; set; } = "";
-    public string From { get; set; } = "";
-    public string To { get; set; } = "";
+    public required string ID { get; set; } = "";
+    public required string From { get; set; } = "";
+    public  required string To { get; set; } = "";
     public Relation Relation { get; set; }    // supports | attacks
     public double Confidence { get; set; }
 }
 public enum Relation {
     Supports,
-    Attacks
+    Attacks,
+    Implies,
 }
 
 
