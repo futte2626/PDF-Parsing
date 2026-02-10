@@ -18,7 +18,6 @@ public class CycleDetector
         };
 
         var cycles = FindCycles(adjMatrix);
-        // Extract edges for printing
         var edges = ExtractEdges(adjMatrix);
         
         PrintCycles(cycles, edges);
@@ -190,7 +189,7 @@ public class CycleDetector
         int m = basisVec.Length;
         var cycle = new List<int>();
 
-        // Step 1: Find edges with non-zero coefficients
+        // Step 1: Find kanter med ikke nul koefficienter
         var activeEdges = new List<int>();
         for (int j = 0; j < m; j++)
         {
@@ -202,10 +201,10 @@ public class CycleDetector
 
         if (!activeEdges.Any())
         {
-            return cycle; // Empty cycle
+            return cycle; // En tom cyklus
         }
 
-        // Step 2: Build directed adjacency from edges with their orientations
+        // Step 2: Bygger rettet naboer fra kanterne
         var adj = new Dictionary<int, List<EdgeAdjacency>>();
 
         foreach (int edgeIdx in activeEdges)
@@ -217,17 +216,16 @@ public class CycleDetector
 
             if (coeff > 0)
             {
-                // Forward orientation: u → v
+                // Fremad: u->v
                 if (!adj.ContainsKey(u)) adj[u] = new List<EdgeAdjacency>();
                 adj[u].Add(new EdgeAdjacency(v, edgeIdx, 1));
                 
-                // Reverse entry for tracking
                 if (!adj.ContainsKey(v)) adj[v] = new List<EdgeAdjacency>();
                 adj[v].Add(new EdgeAdjacency(u, edgeIdx, -1));
             }
             else
             {
-                // Backward orientation: v → u
+                // Baggud: v → u
                 if (!adj.ContainsKey(v)) adj[v] = new List<EdgeAdjacency>();
                 adj[v].Add(new EdgeAdjacency(u, edgeIdx, 1));
                 
@@ -236,7 +234,7 @@ public class CycleDetector
             }
         }
 
-        // Step 3: Trace Eulerian circuit
+        // Step 3: Find Euler cyklus
         int startVertex = adj.Keys.First();
         int current = startVertex;
         var usedEdges = new HashSet<int>();
@@ -246,7 +244,7 @@ public class CycleDetector
             if (!adj.ContainsKey(current) || !adj[current].Any())
                 break;
 
-            // Find an unused outgoing edge
+            // Find en ikke brugt udangående kant
             EdgeAdjacency next = null;
             foreach (var neighbor in adj[current])
             {
@@ -258,13 +256,13 @@ public class CycleDetector
             }
 
             if (next == null)
-                break; // No unused edges from this vertex
+                break; // Ingen ikke bruge kanter
 
             usedEdges.Add(next.EdgeIdx);
             cycle.Add(next.EdgeIdx);
             current = next.Vertex;
 
-            // Check if we've returned to start
+            // Tjekker om vi er tilbage til start
             if (current == startVertex && usedEdges.Count == activeEdges.Count)
             {
                 break;
@@ -274,12 +272,12 @@ public class CycleDetector
         return cycle;
     }
 
-    // Helper class for adjacency with edge orientation
+    // Hjælper klasse
     private class EdgeAdjacency
     {
         public int Vertex { get; }
         public int EdgeIdx { get; }
-        public int Direction { get; } // +1 for forward, -1 for backward
+        public int Direction { get; } // +1 for fremad, -1 for bagud
 
         public EdgeAdjacency(int vertex, int edgeIdx, int direction)
         {
@@ -289,49 +287,7 @@ public class CycleDetector
         }
     }
 
-    // Alternative: Simplified version that returns edge sets instead of sequences
-    public static List<HashSet<int>> FindCycleEdgeSets(int[,] adjMatrix)
-    {
-        var edges = ExtractEdges(adjMatrix);
-        int n = adjMatrix.GetLength(0);
-        int m = edges.Count;
-
-        double[][] B = new double[n][];
-        for (int i = 0; i < n; i++)
-        {
-            B[i] = new double[m];
-        }
-
-        for (int j = 0; j < m; j++)
-        {
-            var edge = edges[j];
-            B[edge.Item1][j] = 1;
-            B[edge.Item2][j] = -1;
-        }
-
-        var kernelBasis = FindKernelBasis(B);
-        var cycleSets = new List<HashSet<int>>();
-
-        foreach (var basisVec in kernelBasis)
-        {
-            var edgeSet = new HashSet<int>();
-            for (int j = 0; j < m; j++)
-            {
-                if (Math.Abs(basisVec[j]) > 1e-10)
-                {
-                    edgeSet.Add(j);
-                }
-            }
-            if (edgeSet.Any())
-            {
-                cycleSets.Add(edgeSet);
-            }
-        }
-
-        return cycleSets;
-    }
-
-    // Utility method to print cycles nicely
+    // Hjælper klasse til at printe cycluser. Ved at få knuderne i cykluserne
    public static void PrintCycles(List<List<int>> cycles, List<Tuple<int, int>> edges)
 {
     Console.WriteLine($"Found {cycles.Count} independent cycles:");
@@ -347,57 +303,36 @@ public class CycleDetector
             continue;
         }
 
-        // Build a proper vertex sequence from the edge list
         var vertices = new List<int>();
-        
-        // Start with the first edge
         var firstEdge = edges[cycle[0]];
         vertices.Add(firstEdge.Item1);
         vertices.Add(firstEdge.Item2);
         
-        // For subsequent edges, find which endpoint connects to the last vertex
         for (int j = 1; j < cycle.Count; j++)
         {
             var edge = edges[cycle[j]];
             int lastVertex = vertices[vertices.Count - 1];
-            
-            if (edge.Item1 == lastVertex)
-            {
-                vertices.Add(edge.Item2);
-            }
-            else if (edge.Item2 == lastVertex)
-            {
-                vertices.Add(edge.Item1);
-            }
-            else
-            {
-                // This shouldn't happen if the cycle is valid
-                // But if it does, we need to find a connection
-                // Check if either endpoint connects to any vertex in our path
-                for (int k = 0; k < vertices.Count; k++)
-                {
-                    if (edge.Item1 == vertices[k])
-                    {
-                        // Insert at position k+1
+            if (edge.Item1 == lastVertex) vertices.Add(edge.Item2);
+            else if (edge.Item2 == lastVertex) vertices.Add(edge.Item1);
+            else {
+                for (int k = 0; k < vertices.Count; k++) {
+                    if (edge.Item1 == vertices[k]) {
                         vertices.Insert(k + 1, edge.Item2);
                         break;
                     }
-                    else if (edge.Item2 == vertices[k])
-                    {
+                    if (edge.Item2 == vertices[k]) {
                         vertices.Insert(k + 1, edge.Item1);
                         break;
                     }
                 }
             }
         }
-        
-        // Remove the duplicate start vertex at the end (if present)
+
         if (vertices.Count > 1 && vertices[0] == vertices[vertices.Count - 1])
         {
             vertices.RemoveAt(vertices.Count - 1);
         }
-
-        // Print vertices
+        
         foreach (int v in vertices)
         {
             Console.Write($"v{v + 1} ->    ");

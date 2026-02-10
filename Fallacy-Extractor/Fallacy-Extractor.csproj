@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="OllamaSharp" Version="5.4.12" />
     <PackageReference Include="SharpYaml" Version="2.1.4" />
+    <PackageReference Include="Spire.PDF" Version="12.1.6" />
   </ItemGroup>
   
 
