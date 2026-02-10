@@ -105,21 +105,19 @@ namespace Fallacy_Extractor
             chatClient = new OllamaApiClient(new Uri("http://localhost:11434/"), "gemma3:12b");
             chatHistory = [];
         }
-        public async Task<Root> ParseToYAML(string input){
-            //our prompt for the AI with some restrictions as well
+        public async Task<Root> parseToYAML(string input){
+            
+            // Our prompt
             string prompt = """tag denne tekst i "" og dets pointer og påstande om til dette yaml format vist under teksten, selvom de er lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. Hvis der står et tal, så giv dem et tal. stats skal ALTID være en under kategori af meta og meta må ALDRIG være under nodes og nodes er ALDRIG en under kategori af ducument.  Ved premises og fallies skal du ALTID have et ID med til det. Hvis det er explicit er sandt skal inferred from være tom. Du skal med meddrage implicitpremisesamount. Du skal ikke gentage skemaet perfekt, og det skal angives som et yaml skema og tilpas det til inputtet følgende dette:""";
 
             //string prompt = "tag denne tekst i \"\" og dets pointer og påstande, og omdan dem til yaml format vist under teksten, de må gerne være lidt af et longshot. Jo mere jo bedre, så længe at det er sandt og verificerbart. undlad ingen felter. du skal skrive INTET ANDET end det pure yaml, eller jeg tager alle dine donkey kong bananaer væk. Hvis der står et tal, så giv dem et tal. stats skal ALTID være en under kategori af meta. og vis det er explicit er sandt skal inferred from være tom. du skal ikke gentage skemaet perfekt men tilpas det til inputtet følgende dette:";
 
             prompt += input;
-            // YAMl file exsample and what it must contain
+            // yaml exsample on one line
             prompt += "example yaml for different example:  Version: \"1.0\" Document: ID: \"doc-uuid\" Source: \"input.pdf\" Language: \"en\" PageCount: 10 Nodes: - ID: \"p1\" Role: \"Premise\" Explicit: true Text: > this is text that is a string Confidence: 0.91 TextSpan: Page: 1 Start: 134 End: 247 InferredFrom: [] - ID: \"ip1\" Role: \"Premise\" Explicit: false Text: > this is something implied from some text Confidence: 0.63 TextSpan: null InferredFrom: [\"p4\", \"p6\"] - ID: \"c1\" Role: \"Conclusion\" Explicit: true Text: > therefore this text must be true Confidence: 0.88 TextSpan: Page: 2 Start: 412 End: 476 InferredFrom: [] Edges: - ID: \"e1\" From: \"p4\" To: \"c1\" Relation: \"Supports\" Confidence: 0.82 - ID: \"e2\" From: \"ip1\" To: \"c1\" Relation: \"Supports\" Confidence: 0.71 - ID: \"e3\" From: \"c1\" To: \"c3\" Relation: \"Supports\" Confidence: 0.76 Fallacies: - ID: \"f1\" Type: \"ad_hominem\" TargetNodes: [\"p7\"] Description: > The argument attacks the intelligence of the believers rather than addressing the claim. Confidence: 0.92 TextSpans: - Page: 3 Start: 201 End: 234  Meta: Warnings: - \"Possible circular support detected between c1 and c3\"   Stats: NodeCount: 3 EdgeCount: 3 ImplicitPremisesAmount: 2";
-            //some restrictions for the YAML file, and where about different locaters in the YAML file
+            // Some restricktions to the yamlfile so the code works
             prompt += "Invariants and rules: Meta contains both Warnings and stats. the only valid relaitions are: Supports | Attacks | Implies. NEVER TRANSLATE. the original text should remain prestine. If you don't have data, never guess, just leave the field null. the only valid Roles are: Premis | Conclusion. ImplicitPremisses are when explicit is set to false.";
-            
-            
             string msg = await this.Prompt(prompt);
-   
 
             if((int)msg[0] == 96){ //checks for ` which has the ascii value 96
                 msg = DeCodeBlock(msg); 
@@ -144,6 +142,7 @@ namespace Fallacy_Extractor
             return root;
         }
 
+        //we are Creating a function called Prompt, that returns a string when the string is ready
         public async Task<string> Prompt(string input)
         {
             chatHistory.Add(new ChatMessage(ChatRole.User, input));
@@ -151,15 +150,17 @@ namespace Fallacy_Extractor
             var response = "";
             var options = new ChatOptions()
             {
+                //We are changeing the Temperature of the AI so it doesn't hallucinat
                 Temperature = 0.3f
             };
+            //then we create a new await foreach statement, so it gives us the answer when the AI is ready
             await foreach (ChatResponseUpdate item in chatClient.GetStreamingResponseAsync(chatHistory, options))
             {
                 Console.Write(item.Text); // display as it streams
                 response += item.Text;
             }
 
-            //chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+            chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
             chatHistory.Clear();
             Console.WriteLine();
             return response;
@@ -174,12 +175,13 @@ namespace Fallacy_Extractor
             int start = 7;// ```yaml
             return s.Substring(start, s.Length - start - 3);
         }
+        
+        // We are creating a function, that returns a list of fallacies found in the text
         public async Task<List<Fallacy>> FallacyDetect(Root root){
             var errs = YAMLer.Validate(root);
 
             string prompt = "you need to validate the following yaml for fallacies and logical errors in this exact format:";
-            prompt += "- ID: \"f1\"; Type: \"ad_hominem\"; TargetNodes: [\"p7\"]; Description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\"; Confidence: 0.92; TextSpans: [{Page: 3, Start: 201, End: 234}]";
-            prompt += "write as many fallacies as there are from the graph. DO NOT START THE FALLACIES WITH Fallacies: start with the simple -";
+            prompt += "fallacies: [{id: \"f1\", type: \"ad_hominem\", target_nodes: [\"p7\"], description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\", confidence: 0.92, text_spans: [{page: 3, start: 201, end: 234}]}]";
             prompt += "here's the validation errors for the input you should analyze:";
             if (errs.Count > 0)
             {
@@ -188,17 +190,14 @@ namespace Fallacy_Extractor
                     prompt += "- " + e + "\n";
                 prompt += "\n";
             }
+            
+            prompt += "du skal analyse denne yaml fil og finde fejlslutninger og dårlige argumenter, du må KUN bruge yamlfilen og hvis du bruger andet tager jeg dine donkey kong bananer, du skal lave det om til yaml fil og hvis det ikke minder om ekspemplet får du ikke mad. the following is the input you have to analyze:";
 
-            prompt += "you do NOT follow the schema that the input YAML file is in. you're writing distinct YAML following the schema above.";
             var serializer = new SharpYaml.Serialization.Serializer();
             string rootYaml = serializer.Serialize(root);
             prompt += rootYaml;
 
-
             string str = await this.Prompt(prompt);
-            if((int)str[0] == 96){ //checks for ` which has the ascii value 96
-                str = NLangParser.DeCodeBlock(str); 
-            }
 
             List<Fallacy> fallacies = new List<Fallacy>();
             try
@@ -209,7 +208,7 @@ namespace Fallacy_Extractor
             {
                 Console.WriteLine("Failed to parse AI output as Fallacy list: " + ex.Message);
             }
-            chatHistory.Clear();
+
             return fallacies;
         }
 
