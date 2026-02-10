@@ -154,7 +154,7 @@ namespace Fallacy_Extractor
                 Console.WriteLine(s);
             }
             foreach(Fallacy f in await n.FallacyDetect(yaml)){
-                Console.WriteLine(f.Description + f.ID + f.TargetNodes);
+                Console.WriteLine(f.Description + f.ID + f.TargetNodes[0]);
             }
             
             

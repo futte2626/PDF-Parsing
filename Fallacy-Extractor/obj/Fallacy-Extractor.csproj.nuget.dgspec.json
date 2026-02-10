@@ -53,6 +53,10 @@
             "SharpYaml": {
               "target": "Package",
               "version": "[2.1.4, )"
+            },
+            "Spire.PDF": {
+              "target": "Package",
+              "version": "[12.1.6, )"
             }
           },
           "imports": [
