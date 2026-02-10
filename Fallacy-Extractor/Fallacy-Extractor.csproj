@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.4.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="OllamaSharp" Version="5.4.12" />
     <PackageReference Include="SharpYaml" Version="2.1.4" />
   </ItemGroup>

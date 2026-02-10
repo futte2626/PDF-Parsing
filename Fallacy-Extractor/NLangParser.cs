@@ -116,6 +116,8 @@ namespace Fallacy_Extractor
             prompt += "example yaml for different example:  Version: \"1.0\" Document: ID: \"doc-uuid\" Source: \"input.pdf\" Language: \"en\" PageCount: 10 Nodes: - ID: \"p1\" Role: \"Premise\" Explicit: true Text: > this is text that is a string Confidence: 0.91 TextSpan: Page: 1 Start: 134 End: 247 InferredFrom: [] - ID: \"ip1\" Role: \"Premise\" Explicit: false Text: > this is something implied from some text Confidence: 0.63 TextSpan: null InferredFrom: [\"p4\", \"p6\"] - ID: \"c1\" Role: \"Conclusion\" Explicit: true Text: > therefore this text must be true Confidence: 0.88 TextSpan: Page: 2 Start: 412 End: 476 InferredFrom: [] Edges: - ID: \"e1\" From: \"p4\" To: \"c1\" Relation: \"Supports\" Confidence: 0.82 - ID: \"e2\" From: \"ip1\" To: \"c1\" Relation: \"Supports\" Confidence: 0.71 - ID: \"e3\" From: \"c1\" To: \"c3\" Relation: \"Supports\" Confidence: 0.76 Fallacies: - ID: \"f1\" Type: \"ad_hominem\" TargetNodes: [\"p7\"] Description: > The argument attacks the intelligence of the believers rather than addressing the claim. Confidence: 0.92 TextSpans: - Page: 3 Start: 201 End: 234  Meta: Warnings: - \"Possible circular support detected between c1 and c3\"   Stats: NodeCount: 3 EdgeCount: 3 ImplicitPremisesAmount: 2";
             //some restrictions for the YAML file, and where about different locaters in the YAML file
             prompt += "Invariants and rules: Meta contains both Warnings and stats. the only valid relaitions are: Supports | Attacks | Implies. NEVER TRANSLATE. the original text should remain prestine. If you don't have data, never guess, just leave the field null. the only valid Roles are: Premis | Conclusion. ImplicitPremisses are when explicit is set to false.";
+            
+            
             string msg = await this.Prompt(prompt);
    
 
@@ -157,7 +159,7 @@ namespace Fallacy_Extractor
                 response += item.Text;
             }
 
-            chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+            //chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
             chatHistory.Clear();
             Console.WriteLine();
             return response;
@@ -176,7 +178,7 @@ namespace Fallacy_Extractor
             var errs = YAMLer.Validate(root);
 
             string prompt = "you need to validate the following yaml for fallacies and logical errors in this exact format:";
-            prompt += "- [{ID: \"f1\", type: \"ad_hominem\", target_nodes: [\"p7\"], description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\", confidence: 0.92, text_spans: [{page: 3, start: 201, end: 234}]}]";
+            prompt += "- ID: \"f1\"; Type: \"ad_hominem\"; TargetNodes: [\"p7\"]; Description: \"The argument attacks the intelligence of the believers rather than addressing the claim.\"; Confidence: 0.92; TextSpans: [{Page: 3, Start: 201, End: 234}]";
             prompt += "write as many fallacies as there are from the graph. DO NOT START THE FALLACIES WITH Fallacies: start with the simple -";
             prompt += "here's the validation errors for the input you should analyze:";
             if (errs.Count > 0)
