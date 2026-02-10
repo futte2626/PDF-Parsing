@@ -10,6 +10,7 @@ namespace Fallacy_Extractor
     {
         static async Task Main(string[] args)
         {
+            Console.Write("hello world");
             NLangParser n = new NLangParser();
             //Root yaml = await n.parseToYAML("what is love? if love exists, then point at it. love isn't physical, cuz the physical world is devoid of it.");
             var stringy =

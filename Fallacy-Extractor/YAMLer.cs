@@ -177,10 +177,10 @@ public class Fallacy
 {
     public string ID { get; set; } = "";
     public string Type { get; set; } = "";        // ad_hominem, strawman, etc.
-    public List<string> TargetNodes { get; set; } = new();
+    public List<string> TargetNodes { get; set; } = [];
     public string Description { get; set; } = "";
     public double Confidence { get; set; }
-    public List<TextSpan> TextSpans { get; set; } = new();
+    public List<TextSpan> TextSpans { get; set; } = [];
 }
 
 public class TextSpan

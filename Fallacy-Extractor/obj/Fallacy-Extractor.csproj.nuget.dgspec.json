@@ -46,14 +46,6 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "Microsoft.NET.Test.Sdk": {
-              "target": "Package",
-              "version": "(, )"
-            },
-            "NUnit": {
-              "target": "Package",
-              "version": "[4.4.0, )"
-            },
             "OllamaSharp": {
               "target": "Package",
               "version": "[5.4.12, )"
