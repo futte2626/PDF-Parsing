@@ -23,3 +23,13 @@ C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\D
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.pdb
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\Fallacy-Extractor.genruntimeconfig.cache
 C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\obj\Debug\net9.0\ref\Fallacy-Extractor.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\HarfBuzzSharp.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\Spire.Pdf.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\System.Drawing.Common.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\System.Private.Windows.Core.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\osx\native\libHarfBuzzSharp.dylib
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win-arm64\native\libHarfBuzzSharp.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win-x64\native\libHarfBuzzSharp.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win-x86\native\libHarfBuzzSharp.dll
+C:\Users\Diogenes of Sinope\Documents\GitHub\PDF-Parsing\Fallacy-Extractor\bin\Debug\net9.0\runtimes\win\lib\net9.0\Microsoft.Win32.SystemEvents.dll

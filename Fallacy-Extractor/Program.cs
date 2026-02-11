@@ -11,7 +11,20 @@ namespace Fallacy_Extractor
         static async Task Main(string[] args)
         {
             Console.Write("hello world");
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Usage: dotnet run <input.pdf> <output.pdf>");
+                return;
+            }
+            string inputPdf = args[0];
+            string outputPdf = args[1];
+            var pdfTool = new Pdf();
             NLangParser n = new NLangParser();
+
+            string allText = pdfTool.Load(inputPdf);
+            Console.WriteLine("--- PDF Text ---");
+            Console.WriteLine(allText);
+
             //Root yaml = await n.parseToYAML("what is love? if love exists, then point at it. love isn't physical, cuz the physical world is devoid of it.");
             var stringy =
     "Version: \"1.0\"\n" +
@@ -131,8 +144,9 @@ namespace Fallacy_Extractor
     "    EdgeCount: 4\n" +
     "    ImplicitPremisesAmount: 3\n";
 
-            if((int)stringy[0] == 96){ //checks for ` which has the ascii value 96
-                stringy = NLangParser.DeCodeBlock(stringy); 
+            if ((int)stringy[0] == 96)
+            { //checks for ` which has the ascii value 96
+                stringy = NLangParser.DeCodeBlock(stringy);
             }
             Console.Write(stringy);
             var serializer = new Serializer();
@@ -148,16 +162,21 @@ namespace Fallacy_Extractor
 
             if (yaml == null)
                 throw new InvalidOperationException("Failed to deserialize YAML");
-            
 
-            foreach(string s in YAMLer.Validate(yaml)){
+
+            foreach (string s in YAMLer.Validate(yaml))
+            {
                 Console.WriteLine(s);
             }
-            foreach(Fallacy f in await n.FallacyDetect(yaml)){
+            foreach (Fallacy f in await n.FallacyDetect(yaml))
+            {
                 Console.WriteLine(f.Description + f.ID + f.TargetNodes[0]);
             }
-            
-            
+            Pdf.test(inputPdf, outputPdf, pdfTool, yaml);
+
+
         }
+
+        
     }
 }
