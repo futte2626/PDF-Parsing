@@ -5,137 +5,128 @@ using System.Linq;
 namespace Fallacy_Extractor;
 
 public class CycleDetector
-{
-    public static void TestDetector()
+{ 
+    public static List<List<Node>> GetCycles(List<Node> nodes, List<Edge> edges)
     {
-        // A (Adjacency) Matrix
-        int[,] adjMatrix = {
-            {0, 1, 0, 0, 1},
-            {1, 0, 1, 0, 1},
-            {0, 1, 0, 1, 0},
-            {0, 0, 1, 0, 1},
-            {1, 1, 0, 1, 0}
-        };
-
-        var cycles = FindCycles(adjMatrix);
-        var edges = ExtractEdges(adjMatrix);
+        int size = nodes.Count;
         
-        PrintCycles(cycles, edges);
-    }
-    
-    public static List<List<int>> FindCycles(int[,] adjMatrix)
-    {
-        // Step 1: Find edges fra A matrix
-        var edges = ExtractEdges(adjMatrix);
-        int n = adjMatrix.GetLength(0); // Antal nodes
-        int m = edges.Count;            // Antal edges
-
-        // Step 2: Laver incidence matrix B
-        double[][] B = new double[n][];
-        for (int i = 0; i < n; i++)
+        Dictionary<string, int> nodeIndexMap = new Dictionary<string, int>();
+        for (int i = 0; i < size; i++)
         {
-            B[i] = new double[m];
+            nodeIndexMap[nodes[i].ID] = i;
         }
-
-        //Sætter værdierne til +1/-1
-        for (int j = 0; j < m; j++)
+        
+        int[,] adjMatrix = new int[size, size];
+        
+        foreach (var edge in edges)
         {
-            Tuple<int,int> edge = edges[j];
-            B[edge.Item1][j] = 1;    // start = +1
-            B[edge.Item2][j] = -1;   // slut = -1
-        }
-
-        // Step 3: Finder kernel af B
-        List<double[]> kernelBasis = FindKernelBasis(B);
-
-        // Step 4: Konverterere kernel vektorer til cycles 
-        List<List<int>> cycles = new List<List<int>>();
-        foreach (double[] basisVec in kernelBasis)
-        {
-            List<int> cycle = ExtractCycle(basisVec, edges);
-            if (cycle.Any())
+            if (nodeIndexMap.ContainsKey(edge.From) && nodeIndexMap.ContainsKey(edge.To))
             {
-                cycles.Add(cycle);
+                int fromPos = nodeIndexMap[edge.From];
+                int toPos = nodeIndexMap[edge.To];
+                
+                adjMatrix[fromPos, toPos] = 1;
+                adjMatrix[toPos, fromPos] = 1;
             }
         }
-
+        
+        var cycles = FindCyclesViaIncidence(adjMatrix, nodes);
+        
         return cycles;
     }
 
-    // Finder edges fra adjacency matrix 
-    private static List<Tuple<int, int>> ExtractEdges(int[,] adjMatrix)
+    private static List<List<Node>> FindCyclesViaIncidence(int[,] adjMatrix, List<Node> nodes)
     {
-        // En liste af tupler (En anden måde at se edges som)
-        List<Tuple<int, int>> edges = new List<Tuple<int, int>>();
-        int n = adjMatrix.GetLength(0);
+        int n = nodes.Count;
         
-        // Lopper igennem matricens øverste trekant dette kan ses her fordi ellers vil vi få redundant edges
+        var edges = new List<Tuple<int, int>>();
         for (int i = 0; i < n; i++)
         {
             for (int j = i + 1; j < n; j++)
             {
-                //Hvis den ikke er nul må der være en kant (kunne også skrives if(adjMatrix[i, j] == 1))
-                if (adjMatrix[i, j] != 0)
+                if (adjMatrix[i, j] == 1)
                 {
                     edges.Add(Tuple.Create(i, j));
                 }
             }
         }
-        return edges;
+        
+        int m = edges.Count;
+        
+        if (m == 0) return new List<List<Node>>();
+        double[][] B = new double[n][];
+        for (int i = 0; i < n; i++)
+        {
+            B[i] = new double[m];
+        }
+        
+        for (int j = 0; j < m; j++)
+        {
+            var edge = edges[j];
+            B[edge.Item1][j] = 1;    // tail = +1
+            B[edge.Item2][j] = -1;   // head = -1
+        }
+        
+        var kernelBasis = FindKernelBasis(B);
+        var cycles = new List<List<Node>>();
+        
+        foreach (var basisVec in kernelBasis)
+        {
+            var nodeCycle = ExtractNodeCycle(basisVec, edges, nodes);
+            if (nodeCycle.Count > 0)
+            {
+                cycles.Add(nodeCycle);
+            }
+        }
+        
+        return cycles;
     }
 
-    // Finder basis for kernel(B) med Gaussian elimination
     private static List<double[]> FindKernelBasis(double[][] B)
     {
-        int n = B.Length;     // rækker
-        int m = B[0].Length;  // kolloner
-
-        // Laver er kopi
+        int n = B.Length;
+        int m = B[0].Length;
+        
         double[][] R = new double[n][];
         for (int i = 0; i < n; i++)
         {
             R[i] = new double[m];
             Array.Copy(B[i], R[i], m);
         }
-
-        // Dette bliver pivot kollonerne for RREF 
+        
         var pivotCols = new List<int>();
         int currentRow = 0;
-
+        
         for (int col = 0; col < m && currentRow < n; col++)
         {
-            // Finder pivot i den nuværende kollone
             int pivotRow = -1;
             for (int row = currentRow; row < n; row++)
             {
-                if (Math.Abs(R[row][col]) != 0)
+                if (Math.Abs(R[row][col]) > 1e-10)
                 {
                     pivotRow = row;
                     break;
                 }
             }
-
+            
             if (pivotRow == -1)
             {
-                continue; // Ingen pivot findes i denne kollone
+                continue;
             }
-
-            // Bytter currentRow med pivotRow
+            
             if (pivotRow != currentRow)
             {
                 var temp = R[currentRow];
                 R[currentRow] = R[pivotRow];
                 R[pivotRow] = temp;
             }
-
-            // Normalizere pivot række (gør pivot til 1 med division)
+            
             double pivot = R[currentRow][col];
             for (int j = col; j < m; j++)
             {
                 R[currentRow][j] /= pivot;
             }
-
-            // Trækker denne kollone fra alle andre
+            
             for (int i = 0; i < n; i++)
             {
                 if (i != currentRow && Math.Abs(R[i][col]) > 1e-10)
@@ -147,12 +138,11 @@ public class CycleDetector
                     }
                 }
             }
-
+            
             pivotCols.Add(col);
             currentRow++;
         }
-
-        // Finder frie kolloner (hvor fri kolline svarer til en basis vektor for kernel(B))
+        
         var freeCols = new List<int>();
         for (int col = 0; col < m; col++)
         {
@@ -161,184 +151,163 @@ public class CycleDetector
                 freeCols.Add(col);
             }
         }
-
-        // Konstruerer kernel basis vectors
+        
         var basis = new List<double[]>();
-
+        
         foreach (int freeCol in freeCols)
         {
             double[] basisVec = new double[m];
-            basisVec[freeCol] = 1; // Sætter variable til 1
-
-            // Sætter pivot variabler baseret på vores RREF
+            basisVec[freeCol] = 1;
+            
             for (int i = 0; i < pivotCols.Count; i++)
             {
                 int pivotCol = pivotCols[i];
                 basisVec[pivotCol] = -R[i][freeCol];
             }
-
+            
             basis.Add(basisVec);
         }
-
+        
         return basis;
     }
 
-    // Function til at finde cycles fra basis vectorerne (i kernel(B))
-    private static List<int> ExtractCycle(double[] basisVec, List<Tuple<int, int>> edges)
+    private static List<Node> ExtractNodeCycle(double[] basisVec, List<Tuple<int, int>> edgeIndices, List<Node> nodes)
     {
         int m = basisVec.Length;
-        var cycle = new List<int>();
 
-        // Step 1: Find kanter med ikke nul koefficienter
-        var activeEdges = new List<int>();
+        var activeEdgeIndices = new List<int>();
         for (int j = 0; j < m; j++)
         {
             if (Math.Abs(basisVec[j]) > 1e-10)
             {
-                activeEdges.Add(j);
+                activeEdgeIndices.Add(j);
             }
         }
-
-        if (!activeEdges.Any())
+        
+        if (activeEdgeIndices.Count == 0)
         {
-            return cycle; // En tom cyklus
+            return new List<Node>();
         }
-
-        // Step 2: Bygger rettet naboer fra kanterne
-        var adj = new Dictionary<int, List<EdgeAdjacency>>();
-
-        foreach (int edgeIdx in activeEdges)
+        
+        var adjacency = new Dictionary<int, List<Tuple<int, int>>>();
+        
+        foreach (int edgeIdx in activeEdgeIndices)
         {
-            var edge = edges[edgeIdx];
-            int u = edge.Item1;
-            int v = edge.Item2;
+            var edge = edgeIndices[edgeIdx];
             double coeff = basisVec[edgeIdx];
-
+            
             if (coeff > 0)
             {
-                // Fremad: u->v
-                if (!adj.ContainsKey(u)) adj[u] = new List<EdgeAdjacency>();
-                adj[u].Add(new EdgeAdjacency(v, edgeIdx, 1));
+                // Fremad: u -> v
+                if (!adjacency.ContainsKey(edge.Item1))
+                    adjacency[edge.Item1] = new List<Tuple<int, int>>();
+                adjacency[edge.Item1].Add(Tuple.Create(edge.Item2, edgeIdx));
                 
-                if (!adj.ContainsKey(v)) adj[v] = new List<EdgeAdjacency>();
-                adj[v].Add(new EdgeAdjacency(u, edgeIdx, -1));
+                if (!adjacency.ContainsKey(edge.Item2))
+                    adjacency[edge.Item2] = new List<Tuple<int, int>>();
+                adjacency[edge.Item2].Add(Tuple.Create(edge.Item1, edgeIdx));
             }
             else
             {
-                // Baggud: v → u
-                if (!adj.ContainsKey(v)) adj[v] = new List<EdgeAdjacency>();
-                adj[v].Add(new EdgeAdjacency(u, edgeIdx, 1));
+                // bagud: v -> u
+                if (!adjacency.ContainsKey(edge.Item2))
+                    adjacency[edge.Item2] = new List<Tuple<int, int>>();
+                adjacency[edge.Item2].Add(Tuple.Create(edge.Item1, edgeIdx));
                 
-                if (!adj.ContainsKey(u)) adj[u] = new List<EdgeAdjacency>();
-                adj[u].Add(new EdgeAdjacency(v, edgeIdx, -1));
+                if (!adjacency.ContainsKey(edge.Item1))
+                    adjacency[edge.Item1] = new List<Tuple<int, int>>();
+                adjacency[edge.Item1].Add(Tuple.Create(edge.Item2, edgeIdx));
             }
         }
+        
+        var visited = new HashSet<int>();
+        var nodeCycle = new List<Node>();
 
-        // Step 3: Find Euler cyklus
-        int startVertex = adj.Keys.First();
-        int current = startVertex;
-        var usedEdges = new HashSet<int>();
-
-        while (true)
+        int startVertex = edgeIndices[activeEdgeIndices[0]].Item1;
+        
+        var stack = new Stack<int>();
+        var parent = new Dictionary<int, int>();
+        var parentEdge = new Dictionary<int, int>();
+        
+        stack.Push(startVertex);
+        visited.Add(startVertex);
+        parent[startVertex] = -1;
+        
+        while (stack.Count > 0 && nodeCycle.Count == 0)
         {
-            if (!adj.ContainsKey(current) || !adj[current].Any())
-                break;
-
-            // Find en ikke brugt udangående kant
-            EdgeAdjacency next = null;
-            foreach (var neighbor in adj[current])
+            int current = stack.Pop();
+            
+            if (!adjacency.ContainsKey(current))
+                continue;
+            
+            foreach (var neighbor in adjacency[current])
             {
-                if (!usedEdges.Contains(neighbor.EdgeIdx))
+                int nextVertex = neighbor.Item1;
+                
+                if (!visited.Contains(nextVertex))
                 {
-                    next = neighbor;
+                    visited.Add(nextVertex);
+                    parent[nextVertex] = current;
+                    parentEdge[nextVertex] = neighbor.Item2;
+                    stack.Push(nextVertex);
+                }
+                else if (nextVertex != parent[current] && parent.ContainsKey(current))
+                {
+                    var cycleVertices = new List<int>();
+                    int cycleNode = current;
+                    
+                    while (cycleNode != nextVertex && cycleNode != -1)
+                    {
+                        cycleVertices.Add(cycleNode);
+                        cycleNode = parent.ContainsKey(cycleNode) ? parent[cycleNode] : -1;
+                    }
+                    cycleVertices.Add(nextVertex);
+                    cycleVertices.Reverse();
+                    
+                    foreach (int v in cycleVertices)
+                    {
+                        nodeCycle.Add(nodes[v]);
+                    }
+                    
                     break;
                 }
             }
-
-            if (next == null)
-                break; // Ingen ikke bruge kanter
-
-            usedEdges.Add(next.EdgeIdx);
-            cycle.Add(next.EdgeIdx);
-            current = next.Vertex;
-
-            // Tjekker om vi er tilbage til start
-            if (current == startVertex && usedEdges.Count == activeEdges.Count)
-            {
-                break;
-            }
         }
-
-        return cycle;
-    }
-
-    // Hjælper klasse
-    private class EdgeAdjacency
-    {
-        public int Vertex { get; }
-        public int EdgeIdx { get; }
-        public int Direction { get; } // +1 for fremad, -1 for bagud
-
-        public EdgeAdjacency(int vertex, int edgeIdx, int direction)
+        
+        if (nodeCycle.Count > 0)
         {
-            Vertex = vertex;
-            EdgeIdx = edgeIdx;
-            Direction = direction;
+            return nodeCycle;
         }
+        
+        var vertexSet = new HashSet<int>();
+        foreach (int edgeIdx in activeEdgeIndices)
+        {
+            var edge = edgeIndices[edgeIdx];
+            vertexSet.Add(edge.Item1);
+            vertexSet.Add(edge.Item2);
+        }
+        
+        foreach (int v in vertexSet)
+        {
+            nodeCycle.Add(nodes[v]);
+        }
+        
+        return nodeCycle;
     }
-
-    // Hjælper klasse til at printe cycluser. Ved at få knuderne i cykluserne
-   public static void PrintCycles(List<List<int>> cycles, List<Tuple<int, int>> edges)
-{
-    Console.WriteLine($"Found {cycles.Count} independent cycles:");
     
-    for (int i = 0; i < cycles.Count; i++)
+    public static void PrintCycles(List<List<Node>> cycles)
     {
-        Console.Write($"Cycle {i + 1}: ");
-        var cycle = cycles[i];
+        Console.WriteLine($"Found {cycles.Count} cycles:");
         
-        if (!cycle.Any())
+        for (int i = 0; i < cycles.Count; i++)
         {
-            Console.WriteLine("Empty");
-            continue;
-        }
-
-        var vertices = new List<int>();
-        var firstEdge = edges[cycle[0]];
-        vertices.Add(firstEdge.Item1);
-        vertices.Add(firstEdge.Item2);
-        
-        for (int j = 1; j < cycle.Count; j++)
-        {
-            var edge = edges[cycle[j]];
-            int lastVertex = vertices[vertices.Count - 1];
-            if (edge.Item1 == lastVertex) vertices.Add(edge.Item2);
-            else if (edge.Item2 == lastVertex) vertices.Add(edge.Item1);
-            else {
-                for (int k = 0; k < vertices.Count; k++) {
-                    if (edge.Item1 == vertices[k]) {
-                        vertices.Insert(k + 1, edge.Item2);
-                        break;
-                    }
-                    if (edge.Item2 == vertices[k]) {
-                        vertices.Insert(k + 1, edge.Item1);
-                        break;
-                    }
-                }
+            Console.Write($"Cycle {i + 1}: ");
+            var cycle = cycles[i];
+            
+            foreach (var node in cycle)
+            {
+                Console.Write($"{node.ID} -> ");
             }
         }
-
-        if (vertices.Count > 1 && vertices[0] == vertices[vertices.Count - 1])
-        {
-            vertices.RemoveAt(vertices.Count - 1);
-        }
-        
-        foreach (int v in vertices)
-        {
-            Console.Write($"v{v + 1} ->    ");
-        }
-        // Close the cycle
-        Console.WriteLine($"v{vertices[0] + 1}");
     }
-}
 }
