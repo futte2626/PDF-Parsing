@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Fallacy-Extractor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da203ce861ab19bc715d9e7cdc63a9ac10ac077b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0ae5e49a2beed47070644d9bc7f7c4a97c630e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Fallacy-Extractor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Fallacy-Extractor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

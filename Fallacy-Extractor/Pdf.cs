@@ -40,13 +40,14 @@ namespace Fallacy_Extractor
         {
             PdfDocument pdf = new PdfDocument();
             pdf.LoadFromFile(pdfPath);
-            
-            var annotFont = new PdfFont(PdfFontFamily.Helvetica, 10);
 
             foreach (var fallacy in root.Fallacies ?? Enumerable.Empty<Fallacy>())
             {
-                string popupText = $"{fallacy.Type}\nConfidence: {Math.Round(fallacy.Confidence * 100, 1)}%\nTargets: {string.Join(", ", fallacy.TargetNodes)}\n\n{fallacy.Description}";
+                string popupText =
+                    $"{fallacy.Type}\nConfidence: {Math.Round(fallacy.Confidence * 100, 1)}%\n" +
+                    $"Targets: {string.Join(", ", fallacy.TargetNodes)}\n\n{fallacy.Description}";
 
+                // Highlight fallacy text spans
                 foreach (var span in fallacy.TextSpans ?? Enumerable.Empty<TextSpan>())
                 {
                     int pageIndex = Math.Max(0, span.Page - 1);
@@ -55,60 +56,60 @@ namespace Fallacy_Extractor
 
                     PdfTextExtractor ext = new(page);
                     PdfTextExtractOptions options = new PdfTextExtractOptions();
-                    string pageText = ext.ExtractText(options) ?? "";
+                    string pageText = ext.ExtractText(options);
                     int start = Math.Max(0, span.Start);
                     int end = Math.Min(span.End, pageText.Length);
-                    if (start >= pageText.Length) continue;
+                    if (start >= end) continue;
 
-                    string target = pageText.Substring(start, Math.Max(1, end - start));
+                    string target = pageText.Substring(start, end - start);
 
-                    var finder = new PdfTextFinder(page) { Options = new PdfTextFindOptions() };
+                    var finder = new PdfTextFinder(page);
                     var fragments = finder.Find(target);
 
-                    if (fragments != null && fragments.Count > 0)
+                    foreach (var frag in fragments)
                     {
-                        PdfTextFragment frag = fragments.FirstOrDefault(f => f.Text == target) ?? fragments[0];
-
-                        var rects = new List<RectangleF>();
-                        if (frag.Positions != null && frag.Positions.Length > 0)
-                        {
-                            foreach (var p in frag.Positions)
-                            {
-                                SizeF size = annotFont.MeasureString(frag.Text);
-                                rects.Add(new RectangleF(p.X, p.Y - size.Height, size.Width, size.Height));
-                            }
-                        }
-                        if (rects.Count == 0)
-                        {
-                            rects.Add(new RectangleF(20, 20, 200, annotFont.Size + 4));
-                        }
-
-                        var firstRect = rects[0];
-
-                        var highlight = new PdfTextMarkupAnnotation(
-                            "Analysis",
-                            $"Detected: {fallacy.Type}",
-                            target,
-                            new PointF(firstRect.X, firstRect.Y + firstRect.Height),
-                            annotFont
+                        foreach(var bounds in frag.Bounds){
+                            page.Canvas.DrawRectangle(
+                            new PdfSolidBrush(Color.FromArgb(60, Color.Yellow)), // transparent yellow
+                            bounds
                         );
 
-                        highlight.TextMarkupAnnotationType = PdfTextMarkupAnnotationType.Highlight;
-
-                        page.Annotations.Add(highlight);
-
-                        var popupBounds = new RectangleF(firstRect.Right + 6f, Math.Max(4f, firstRect.Y - 2f), 260f, 120f);
-                        var popup = new PdfPopupAnnotation(popupBounds, popupText);
-                        page.Annotations.Add(popup);
-
-                        var brush = new PdfSolidBrush(Color.FromArgb(90, Color.Yellow));
-                        foreach (var r in rects)
-                        {
-                            var infl = RectangleF.Inflate(r, 1.0f, 2.0f);
-                            page.Canvas.Save();
-                            page.Canvas.DrawRectangle(brush, infl.X, infl.Y, infl.Width, infl.Height);
-                            page.Canvas.Restore();
+                        // Popup annotation near the highlight
+                        var popupBounds = new RectangleF(bounds.Right + 5f, bounds.Y, 200f, 80f);
+                        page.Annotations.Add(new PdfPopupAnnotation(popupBounds, popupText));
                         }
+                        
+                    }
+                }
+
+                // Highlight referenced premises
+                foreach (var nodeId in fallacy.TargetNodes)
+                {
+                    var node = root.Nodes.FirstOrDefault(n => n.ID == nodeId);
+                    if (node?.TextSpan == null) continue;
+
+                    int pageIndex = Math.Max(0, node.TextSpan.Page - 1);
+                    if (pageIndex >= pdf.Pages.Count) continue;
+                    var page = pdf.Pages[pageIndex];
+
+                    PdfTextExtractor ext = new(page);
+                    PdfTextExtractOptions options = new PdfTextExtractOptions();
+                    string pageText = ext.ExtractText(options);
+                    int start = Math.Max(0, node.TextSpan.Start);
+                    int end = Math.Min(node.TextSpan.End, pageText.Length);
+                    if (start >= end) continue;
+
+                    string target = pageText.Substring(start, end - start);
+                    var finder = new PdfTextFinder(page);
+                    var fragments = finder.Find(target);
+
+                    foreach (var frag in fragments)
+                    {
+                        var bounds = frag.Bounds[0];
+                        page.Canvas.DrawRectangle(
+                            new PdfSolidBrush(Color.FromArgb(30, Color.Cyan)), // transparent cyan for premises
+                            bounds
+                        );
                     }
                 }
             }
@@ -117,11 +118,6 @@ namespace Fallacy_Extractor
         }
         public static void test(string inputPdf, string outputPdf, Pdf pdfTool, Root root)
         {
-            // Extract text (optional)
-            string allText = pdfTool.Load(inputPdf);
-            Console.WriteLine("--- PDF Text ---");
-            Console.WriteLine(allText);
-
             // Annotate PDF
             pdfTool.AnnotatePdf(inputPdf, root, outputPdf);
             Console.WriteLine($"Annotated PDF saved to {outputPdf}");
